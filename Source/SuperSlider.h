@@ -1,55 +1,222 @@
 #pragma once
+
 #include <JuceHeader.h>
+#include "PluginProcessor.h"
 
-struct SuperSlider :
-    public juce::Slider
+//==============================================================================
+/**
+*/
+
+namespace Comp
 {
-    using Slider = juce::Slider;
-    using Style = Slider::SliderStyle;
-    using BoxPos = Slider::TextEntryBoxPosition;
-    using Mouse = juce::MouseEvent;
-    using Wheel = juce::MouseWheelDetails;
+    static constexpr float Tau = 6.28318530718f;
 
-    static constexpr float NormalWheel = .8f;
-    static constexpr float SensitiveWheel = .05f;
-
-    SuperSlider() :
-        Slider()
+    struct Comp :
+        public juce::Component
     {
-        setSliderStyle(Style::RotaryVerticalDrag);
-    }
+        Comp(juce::String&& tooltp = "") :
+            juce::Component(),
+            tooltip(tooltp)
+        {
+            setBufferedToImage(true);
+        }
+    protected:
+        juce::String tooltip;
 
-    void mouseWheelMove(const Mouse& mouse, const Wheel& wheel) override
+        void paint(juce::Graphics& g) override
+        {
+            const float t = 2.5f;
+            const auto col = juce::Colour::fromRGBA(56, 163, 165, 255);
+            g.setColour(col);
+            g.drawRoundedRectangle(getLocalBounds().toFloat(), t, t);
+        }
+    };
+
+    struct Label :
+        public Comp
     {
-        auto newWheel = wheel;
-        const auto speed = mouse.mods.isCtrlDown() ? SensitiveWheel : NormalWheel;
-        newWheel.deltaY *= speed;
+        Label(juce::String txt) :
+            Comp(),
+            text(txt)
+        {};
+        juce::String text;
+        juce::Font font;
+    protected:
 
-        Slider::mouseWheelMove(mouse, newWheel);
-    }
-};
+        void paint(juce::Graphics& g) override
+        {
+            g.setFont(font);
+            auto bounds = getLocalBounds().toFloat().reduced(2.f);
+            g.setColour(juce::Colours::limegreen);
+            auto strWidth = font.getStringWidthFloat(text);
+            g.setFont(4.f * (float)getWidth() / strWidth);
+            g.drawFittedText(text, bounds.toNearestInt(), juce::Justification::centred, 1);
+            g.drawRoundedRectangle(bounds, 2.f, 2.f);
+            for (auto i = 0; i < 2; ++i)
+            {
+                bounds = bounds.reduced(4.f);
+                g.drawRoundedRectangle(bounds, 2.f, 2.f);
+            }
+        }
+    };
 
-struct MainComponent :
-    public juce::Component
-{
-    MainComponent() :
-        gain()
+    struct Knob :
+        public Comp
     {
-        addAndMakeVisible(gain);
+        static constexpr float StartAngle = Tau * .5f + Tau;
+        static constexpr float AngleWidth = Tau;
 
-        setSize(300, 200);
-    }
+        static constexpr float Sensitive = .2f;
+        static constexpr float Wheel = 0.01f;
 
-    void paint(juce::Graphics& g) override
-    {
-        g.fillAll(juce::Colours::black);
-    }
 
-    void resized() override
-    {
-        gain.setBounds(getLocalBounds());
-        gain.setTextBoxStyle(SuperSlider::BoxPos::TextBoxBelow, false, getWidth(), getHeight() / 10);
-    }
+        inline std::function<void(Knob&, juce::Graphics& g)> makeOnPaint0()
+        {
+            return [](Knob& k, juce::Graphics& g)
+            {
+                auto font = juce::Font(juce::Typeface::createSystemTypefaceFor(BinaryData::Symtext_ttf, BinaryData::Symtext_ttfSize));
+                g.setFont(font);
+                auto green1 = juce::Colour(87, 204, 153);
+                auto green2 = juce::Colour(56, 163, 165);
+                auto green3 = juce::Colour(199, 249, 204);
 
-    SuperSlider gain;
-};
+                g.setColour(green2);
+                g.setFont(24.f);
+                const auto value = k.rap.getValue();
+                const auto nameAndVal = k.rap.getName(20) + "\n" + k.rap.getCurrentValueAsText();
+                g.drawFittedText(nameAndVal, k.getLocalBounds(), juce::Justification::centred, 1);
+
+                float mappedValue = juce::jmap(k.rap.getNormalisableRange().convertFrom0to1(value), k.rap.getNormalisableRange().start, k.rap.getNormalisableRange().end, 1.f, 0.f);
+
+                const auto thickness = 2.f;
+                const auto width = (float)k.getWidth();
+                const auto height = (float)k.getHeight();
+                juce::Rectangle<float> bounds;
+                {
+                    const auto minDimen = std::min(width, height);
+                    const auto x = (width - minDimen) * .5f;
+                    const auto y = (height - minDimen) * .5f;
+                    bounds.setBounds(x, y, minDimen, minDimen);
+                }
+
+                g.drawEllipse(bounds, thickness);
+
+                const auto thickness2 = thickness * 2.f;
+                const auto thickness4 = thickness * 4.f;
+
+                juce::PathStrokeType strokeType(thickness2, juce::PathStrokeType::JointStyle::curved, juce::PathStrokeType::EndCapStyle());
+
+                const auto radius = .5f * bounds.getWidth() - thickness4;
+                const juce::Point<float> centre(
+                    bounds.getWidth() * .5f + bounds.getX(),
+                    bounds.getHeight() * .5f + bounds.getY()
+                );
+
+                const auto valAngle = StartAngle + value * AngleWidth;
+
+                //juce::ColourGradient gradient(green2, 0, 0, green1, 0, radius, false);
+                //g.setGradientFill(gradient);
+
+                auto red = (static_cast<int>(255 * mappedValue));
+                auto green = (green1.getGreen());
+                auto blue = (green1.getBlue());
+
+                juce::Path arc;
+
+                g.setColour(juce::Colours::white);
+                arc.addCentredArc(
+                    centre.x, centre.y,
+                    radius, radius,
+                    0.f,
+                    value,
+                    valAngle,
+                    true
+                );
+
+                g.strokePath(arc, strokeType);
+
+
+                juce::Path arc1;
+
+                g.setColour(juce::Colour(red, green, blue));
+
+                arc1.addCentredArc(
+                    centre.x, centre.y,
+                    radius, radius,
+                    0.f,
+                    StartAngle,
+                    valAngle,
+                    true
+                );
+
+                //auto line = juce::Line<float>::fromStartAndAngle(centre, radius, valAngle);
+                //arc.lineTo(line.withShortenedStart(radius - thickness4).getStart());
+
+                g.strokePath(arc1, strokeType);
+
+            };
+        };
+
+        Knob(juce::String& tooltp, juce::RangedAudioParameter* _rap) :
+            Comp(std::move(tooltp)),
+            rap(*_rap),
+            attach(rap, [this](float) { repaint(); }, nullptr),
+            onPaint(makeOnPaint0()),
+            dragY(0.f)
+        {
+            attach.sendInitialUpdate();
+        }
+
+    protected:
+        juce::RangedAudioParameter& rap;
+        juce::ParameterAttachment attach;
+        std::function<void(Knob&, juce::Graphics& g)> onPaint;
+        float dragY;
+
+        void paint(juce::Graphics& g) override
+        {
+            onPaint(*this, g);
+        }
+
+        void mouseDown(const juce::MouseEvent& evt) override
+        {
+            attach.beginGesture();
+            dragY = evt.position.y / (float)getTopLevelComponent()->getHeight();
+        }
+
+        void mouseDrag(const juce::MouseEvent& evt) override
+        {
+            const auto newDragY = evt.position.y / (float)getTopLevelComponent()->getHeight();
+            const auto dif = dragY - newDragY;
+            const auto sens = evt.mods.isShiftDown() ? Sensitive : 1.f;
+            const auto val = juce::jlimit(0.f, 1.f, rap.getValue() + dif * sens);
+            attach.setValueAsPartOfGesture(rap.convertFrom0to1(val));
+            dragY = newDragY;
+        }
+
+        void mouseUp(const juce::MouseEvent& evt) override
+        {
+            if (!evt.mouseWasDraggedSinceMouseDown() && evt.mods.isAltDown())
+            {
+                attach.setValueAsPartOfGesture(rap.convertFrom0to1(rap.getDefaultValue()));
+            }
+            attach.endGesture();
+        }
+
+        void mouseDoubleClick(const juce::MouseEvent& evt) override
+        {
+            attach.beginGesture();
+            attach.setValueAsPartOfGesture(rap.convertFrom0to1(rap.getDefaultValue()));
+            attach.endGesture();
+        }
+
+        void mouseWheelMove(const juce::MouseEvent& evt, const juce::MouseWheelDetails& wheel)
+        {
+            if (evt.mods.isAnyMouseButtonDown()) return;
+            const auto direc = wheel.deltaY > 0.f ? 1.f : -1.f;
+            const auto sens = evt.mods.isShiftDown() ? Sensitive : 1.f;
+            auto val = juce::jlimit(0.f, 1.f, rap.getValue() + direc * Wheel * sens);
+            attach.setValueAsCompleteGesture(rap.convertFrom0to1(val));
+        }
+    };
+}

@@ -56,10 +56,43 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    float getRmsValue(const int channel) const;
     juce::AudioProcessorValueTreeState apvts;
 
 private:
     //==============================================================================
+
+    float rmsLevel;
+
+    template<typename T>
+    float computeRMSLevel(const T& buffer)
+    {
+        //int numChannels = static_cast<int>(buffer.getNumChannels());
+        //int numSamples = static_cast<int>(buffer.getNumSamples());
+        //auto rms = 0.f;
+        //for (int chan = 0; chan < numChannels; ++chan)
+        //{
+        //    rms += buffer.getRMSLevel(chan, 0, numSamples);
+        //}
+
+        //rms /= static_cast<float>(numChannels);
+        //return rms;
+
+        int numChannels = static_cast<int>(buffer.getNumChannels());
+        int numSamples = static_cast<int>(buffer.getNumSamples());
+        auto maxLevel = 0.f;
+        for (int chan = 0; chan < numChannels; ++chan)
+        {
+            auto* channelData = buffer.getReadPointer(chan);
+            for (int i = 0; i < numSamples; ++i)
+            {
+                auto absLevel = std::abs(channelData[i]);
+                if (absLevel > maxLevel)
+                    maxLevel = absLevel;
+            }
+        }
+        return maxLevel;
+    }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SliderAttempAudioProcessor)
 };
