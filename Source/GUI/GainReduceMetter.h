@@ -61,16 +61,17 @@ protected:
 
         // define meter bounds
         auto metterBounds = compBounds.withTrimmedTop(textContainerSpace).withTrimmedBottom(textContainerSpace).removeFromRight(bounds.getWidth() / 2);
+        
+
         // draw meter bounds
         g.setColour(juce::Colours::azure);
         g.drawRoundedRectangle(metterBounds, 3.f, 1.f);
 
         // calculate heights
         const auto fillHeight = metterBounds.getHeight();
-        const auto sla = metterBounds.reduced(1).getHeight();
         const float clippedLevel = juce::jlimit(-60.f, 20.f, level);
         const auto scaledLevel = juce::jmap(clippedLevel, -60.f, 20.f, fillHeight, 0.f);
-        const auto zerodBHeight = juce::jmap(0.f, -60.f, 20.f, sla, 0.f);
+        const auto zerodBHeight = juce::jmap(0.f, -60.f, 20.f, fillHeight, 0.f);
 
         // define fill bounds
         juce::Rectangle<float> fillBounds(
@@ -101,18 +102,4 @@ protected:
         g.drawFittedText("Output", bounds.withTrimmedBottom(bounds.getHeight() - textContainerSpace), juce::Justification::centred, 1);
         g.drawFittedText(formatedValue, bounds.withTrimmedTop(bounds.getHeight() - textContainerSpace), juce::Justification::centred, 1);
     }
-
-
-    //void paint(juce::Graphics& g) override {
-
-    //    auto bounds = getLocalBounds();
-
-    //    auto lineHeight = bounds.getHeight() / 2; // half the height of the rectangle
-    //    juce::Line<float> line(
-    //        bounds.getX(), bounds.getY() + lineHeight, // start point at the left center of the rectangle
-    //        bounds.getRight(), bounds.getY() + lineHeight // end point at the right center of the rectangle
-    //    );
-
-    //    g.drawLine(line);
-    //}
 };
