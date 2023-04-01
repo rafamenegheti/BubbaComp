@@ -10,8 +10,8 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "SuperSlider.h"
-#include "GainReduceMetter.h"
+#include "./GUI/SuperSlider.h"
+#include "./GUI/GainReduceMetter.h"
 
 //==============================================================================
 /**

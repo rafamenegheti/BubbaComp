@@ -12,7 +12,8 @@
 
 
 #include <JuceHeader.h>
-#include "PluginProcessor.h"
+#include "../PluginProcessor.h"
+#include "../helpers/misc.h"
 
 
 struct GainReduceMetter : public juce::Component {
@@ -49,14 +50,9 @@ protected:
     }
 
     void paint(juce::Graphics& g) override {
-        // define colors
-        auto green1 = juce::Colour(87, 204, 153);
-        auto green2 = juce::Colour(56, 163, 165);
-        auto green3 = juce::Colour(199, 249, 204);
 
         // define font
-        auto font = juce::Font(juce::Typeface::createSystemTypefaceFor(BinaryData::Symtext_ttf, BinaryData::Symtext_ttfSize));
-        g.setFont(font);
+        g.setFont(Misc::Shared::shared.font);
 
         auto bounds = getLocalBounds();
 
@@ -84,7 +80,7 @@ protected:
 
 
         // draw fill bar
-        g.setColour(juce::Colour(green1));
+        g.setColour(juce::Colour(Misc::Shared::shared.colors.green1));
         g.fillRoundedRectangle(fillBounds, 1.f);
 
 
@@ -100,7 +96,7 @@ protected:
 
         // draw text
         auto formatedValue = formatFloat(clippedLevel);
-        g.setColour(juce::Colour(green1));
+        g.setColour(juce::Colour(Misc::Shared::shared.colors.green1));
         g.setFont(16.f);
         g.drawFittedText("Output", bounds.withTrimmedBottom(bounds.getHeight() - textContainerSpace), juce::Justification::centred, 1);
         g.drawFittedText(formatedValue, bounds.withTrimmedTop(bounds.getHeight() - textContainerSpace), juce::Justification::centred, 1);

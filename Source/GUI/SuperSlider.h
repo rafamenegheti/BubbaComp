@@ -1,7 +1,8 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "PluginProcessor.h"
+#include "../PluginProcessor.h"
+#include "../helpers/misc.h"
 
 //==============================================================================
 /**
@@ -70,17 +71,14 @@ namespace Comp
         static constexpr float Wheel = 0.01f;
 
 
+
         inline std::function<void(Knob&, juce::Graphics& g)> makeOnPaint0()
         {
             return [](Knob& k, juce::Graphics& g)
             {
-                auto font = juce::Font(juce::Typeface::createSystemTypefaceFor(BinaryData::Symtext_ttf, BinaryData::Symtext_ttfSize));
-                g.setFont(font);
-                auto green1 = juce::Colour(87, 204, 153);
-                auto green2 = juce::Colour(56, 163, 165);
-                auto green3 = juce::Colour(199, 249, 204);
+                g.setFont(Misc::Shared::shared.font);
 
-                g.setColour(green2);
+                g.setColour(Misc::Shared::shared.colors.green2);
                 g.setFont(24.f);
                 const auto value = k.rap.getValue();
                 const auto nameAndVal = k.rap.getName(20) + "\n" + k.rap.getCurrentValueAsText();
@@ -118,8 +116,8 @@ namespace Comp
                 //g.setGradientFill(gradient);
 
                 auto red = (static_cast<int>(255 * mappedValue));
-                auto green = (green1.getGreen());
-                auto blue = (green1.getBlue());
+                auto green = (Misc::Shared::shared.colors.green1.getGreen());
+                auto blue = (Misc::Shared::shared.colors.green1.getBlue());
 
                 juce::Path arc;
 

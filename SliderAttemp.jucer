@@ -4,16 +4,20 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" includeBinaryInJuceHeader="1">
   <MAINGROUP id="BPj80c" name="SliderAttemp">
     <GROUP id="{A60FAE9D-C9B6-6747-A9AB-A9D230CAD417}" name="Source">
+      <GROUP id="{D893C9CB-3E24-2875-6D58-C7BCD1C645AF}" name="helpers">
+        <FILE id="oFxgYt" name="misc.cpp" compile="1" resource="0" file="Source/helpers/misc.cpp"/>
+        <FILE id="U8zS8q" name="misc.h" compile="0" resource="0" file="Source/helpers/misc.h"/>
+      </GROUP>
+      <GROUP id="{6B3DB6A0-33BC-14E5-818F-717E381E12C7}" name="GUI">
+        <FILE id="AwZU8u" name="GainReduceMetter.cpp" compile="1" resource="0"
+              file="Source/GUI/GainReduceMetter.cpp"/>
+        <FILE id="VLuC1H" name="GainReduceMetter.h" compile="0" resource="0"
+              file="Source/GUI/GainReduceMetter.h"/>
+        <FILE id="TtgtcJ" name="SuperSlider.cpp" compile="1" resource="0" file="Source/GUI/SuperSlider.cpp"/>
+        <FILE id="LSRsow" name="SuperSlider.h" compile="0" resource="0" file="Source/GUI/SuperSlider.h"/>
+      </GROUP>
       <GROUP id="{2D84C0D4-797A-7664-8DCE-6DE3FD3FE1B7}" name="font">
         <FILE id="pf1aoG" name="Symtext.ttf" compile="0" resource="1" file="Source/font/Symtext.ttf"/>
-      </GROUP>
-      <GROUP id="{42AF69E3-145F-5B49-F1C4-CBA05A2BD388}" name="GUI">
-        <FILE id="Tam4YR" name="GainReduceMetter.cpp" compile="1" resource="0"
-              file="Source/GainReduceMetter.cpp"/>
-        <FILE id="cFpShI" name="GainReduceMetter.h" compile="0" resource="0"
-              file="Source/GainReduceMetter.h"/>
-        <FILE id="tUbeBk" name="SuperSlider.cpp" compile="1" resource="0" file="Source/SuperSlider.cpp"/>
-        <FILE id="MXMEtB" name="SuperSlider.h" compile="0" resource="0" file="Source/SuperSlider.h"/>
       </GROUP>
       <FILE id="hM8LqZ" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
