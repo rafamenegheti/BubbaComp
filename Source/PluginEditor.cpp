@@ -21,7 +21,7 @@ SliderAttempAudioProcessorEditor::SliderAttempAudioProcessorEditor(SliderAttempA
     addAndMakeVisible(gainSlider);
     addAndMakeVisible(metter);
 
-    startTimerHz(24);
+    startTimerHz(36);
 }
 
 SliderAttempAudioProcessorEditor::~SliderAttempAudioProcessorEditor()

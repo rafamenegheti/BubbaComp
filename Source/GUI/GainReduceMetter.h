@@ -24,6 +24,9 @@ struct GainReduceMetter : public juce::Component {
     static constexpr int thicknes = 1;
     static constexpr int textContainerSpace = 20;
 
+    static constexpr float Sensitive = .2f;
+    static constexpr float Wheel = 0.01f;
+
     inline std::function<void(GainReduceMetter&, juce::Graphics& g, float level, std::string(*formatFloat)(float))> makeOnPaint0()
     {
         return [](GainReduceMetter& k, juce::Graphics& g, float level, auto formatFloat)
@@ -45,12 +48,15 @@ struct GainReduceMetter : public juce::Component {
             g.drawRoundedRectangle(metterBounds, 3.f, 1.f);
 
             // calculate heights
-            auto paramValue = k.rap.getValue();
+            auto paramValue = k.rap.convertFrom0to1(k.rap.getValue());
+            auto maxParamValue = k.rap.getNormalisableRange().end;
+            auto minParamValue = k.rap.getNormalisableRange().start;
+
             const auto fillHeight = metterBounds.getHeight();
-            const float clippedLevel = juce::jlimit(-60.f, 20.f, level);
-            const auto scaledLevel = juce::jmap(clippedLevel, -60.f, 20.f, fillHeight, 0.f);
-            const auto zerodBHeight = juce::jmap(0.f, -60.f, 20.f, fillHeight, 0.f);
-            const auto paramValueHeight = juce::jmap(paramValue, -60.f, 20.f, fillHeight, 0.f);
+            const float clippedLevel = juce::jlimit(minParamValue, maxParamValue, level);
+            const auto scaledLevel = juce::jmap(clippedLevel, minParamValue, maxParamValue, fillHeight, 0.f);
+            const auto zerodBHeight = juce::jmap(0.f, minParamValue, maxParamValue, fillHeight, 0.f);
+            const auto paramValueHeight = juce::jmap(paramValue, minParamValue, maxParamValue, fillHeight, 0.f);
 
 
             // define fill bounds
@@ -77,10 +83,12 @@ struct GainReduceMetter : public juce::Component {
 
             // draw text
             auto formatedValue = formatFloat(clippedLevel);
+            auto name = k.rap.getName(20);
+            auto paramValueText = k.rap.getCurrentValueAsText() + " dB";
             g.setColour(juce::Colour(Misc::Shared::shared.colors.green1));
             g.setFont(16.f);
-            g.drawFittedText("Output", bounds.withTrimmedBottom(bounds.getHeight() - textContainerSpace), juce::Justification::centred, 1);
-            g.drawFittedText(formatedValue, bounds.withTrimmedTop(bounds.getHeight() - textContainerSpace), juce::Justification::centred, 1);
+            g.drawFittedText(name, bounds.withTrimmedBottom(bounds.getHeight() - textContainerSpace), juce::Justification::centred, 1);
+            g.drawFittedText(paramValueText, bounds.withTrimmedTop(bounds.getHeight() - textContainerSpace), juce::Justification::centred, 1);
 
 
             g.setColour(Misc::Shared::shared.colors.green3);
@@ -101,7 +109,8 @@ struct GainReduceMetter : public juce::Component {
     GainReduceMetter(juce::RangedAudioParameter* _rap) :
         rap(*_rap),
         attach(rap, [this](float) { repaint(); }, nullptr),
-        onPaint(makeOnPaint0())
+        onPaint(makeOnPaint0()),
+        dragY(0)
     {
         attach.sendInitialUpdate();
     }
@@ -115,6 +124,7 @@ protected:
     juce::RangedAudioParameter& rap;
     juce::ParameterAttachment attach;
     std::function<void(GainReduceMetter&, juce::Graphics& g, float level, std::string (*formatFloat)(float))> onPaint;
+    float dragY;
 
     static std::string formatFloat(float f)
     {
@@ -127,5 +137,58 @@ protected:
     void paint(juce::Graphics& g) override
     {
         onPaint(*this, g, level, &formatFloat);
+    }
+
+    void mouseDown(const juce::MouseEvent& evt) override {
+        attach.beginGesture();
+        // Calculate new parameter value based on click position
+        auto bounds = getLocalBounds();
+        auto metterBounds = bounds.withTrimmedTop(textContainerSpace).withTrimmedBottom(textContainerSpace).removeFromRight(bounds.getWidth() / 2);
+        auto fillHeight = metterBounds.getHeight();
+        auto maxValue = rap.getNormalisableRange().end;
+        auto minValue = rap.getNormalisableRange().start;
+        auto newValue = juce::jmap<float>(juce::jlimit<float>(minValue, maxValue, juce::jmap<float>(fillHeight - evt.position.y + 18, 0.f, fillHeight, minValue, maxValue)), minValue, maxValue, 0.f, 1.f);
+
+        // Set new parameter value
+        rap.setValue(newValue);
+    }
+
+    void mouseDrag(const juce::MouseEvent& evt) override
+    {
+        auto bounds = getLocalBounds();
+        auto metterBounds = bounds.withTrimmedTop(textContainerSpace).withTrimmedBottom(textContainerSpace).removeFromRight(bounds.getWidth() / 2);
+        auto fillHeight = metterBounds.getHeight();
+        auto maxValue = rap.getNormalisableRange().end;
+        auto minValue = rap.getNormalisableRange().start;
+        auto newValue = juce::jmap<float>(juce::jlimit<float>(minValue, maxValue, juce::jmap<float>(fillHeight - evt.position.y + 18, 0.f, fillHeight, minValue, maxValue)), minValue, maxValue, 0.f, 1.f);
+
+        // Set new parameter value
+        rap.setValue(newValue);
+    }
+
+
+    void mouseUp(const juce::MouseEvent& evt) override
+    {
+        if (!evt.mouseWasDraggedSinceMouseDown() && evt.mods.isAltDown())
+        {
+            attach.setValueAsPartOfGesture(rap.convertFrom0to1(rap.getDefaultValue()));
+        }
+        attach.endGesture();
+    }
+
+    void mouseDoubleClick(const juce::MouseEvent& evt) override
+    {
+        attach.beginGesture();
+        attach.setValueAsPartOfGesture(rap.convertFrom0to1(rap.getDefaultValue()));
+        attach.endGesture();
+    }
+
+    void mouseWheelMove(const juce::MouseEvent& evt, const juce::MouseWheelDetails& wheel)
+    {
+        if (evt.mods.isAnyMouseButtonDown()) return;
+        const auto direc = wheel.deltaY > 0.f ? 1.f : -1.f;
+        const auto sens = evt.mods.isShiftDown() ? Sensitive : 1.f;
+        auto val = juce::jlimit(0.f, 1.f, rap.getValue() + direc * Wheel * sens);
+        attach.setValueAsCompleteGesture(rap.convertFrom0to1(val));
     }
 };
