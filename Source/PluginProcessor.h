@@ -13,15 +13,15 @@
 //==============================================================================
 /**
 */
-class SliderAttempAudioProcessor  : public juce::AudioProcessor
+class BubbaCompAudioProcessor  : public juce::AudioProcessor
                             #if JucePlugin_Enable_ARA
                              , public juce::AudioProcessorARAExtension
                             #endif
 {
 public:
     //==============================================================================
-    SliderAttempAudioProcessor();
-    ~SliderAttempAudioProcessor() override;
+    BubbaCompAudioProcessor();
+    ~BubbaCompAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -94,5 +94,5 @@ private:
         return maxLevel;
     }
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SliderAttempAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BubbaCompAudioProcessor)
 };

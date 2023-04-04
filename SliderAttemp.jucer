@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="X5eX1L" name="SliderAttemp" projectType="audioplug" useAppConfig="0"
+<JUCERPROJECT id="X5eX1L" name="BubbaComp" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" includeBinaryInJuceHeader="1">
-  <MAINGROUP id="BPj80c" name="SliderAttemp">
+  <MAINGROUP id="BPj80c" name="BubbaComp">
     <GROUP id="{A60FAE9D-C9B6-6747-A9AB-A9D230CAD417}" name="Source">
       <GROUP id="{D893C9CB-3E24-2875-6D58-C7BCD1C645AF}" name="helpers">
         <FILE id="oFxgYt" name="misc.cpp" compile="1" resource="0" file="Source/helpers/misc.cpp"/>

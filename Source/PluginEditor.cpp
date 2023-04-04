@@ -11,7 +11,7 @@
 
 
 //==============================================================================
-SliderAttempAudioProcessorEditor::SliderAttempAudioProcessorEditor(SliderAttempAudioProcessor& p)
+BubbaCompAudioProcessorEditor::BubbaCompAudioProcessorEditor(BubbaCompAudioProcessor& p)
     : AudioProcessorEditor(&p), audioProcessor(p), gainSlider(tooltip, p.apvts.getParameter("gain")), metter(p.apvts.getParameter("threshold")), mid(p)
 {
 
@@ -30,17 +30,17 @@ SliderAttempAudioProcessorEditor::SliderAttempAudioProcessorEditor(SliderAttempA
     startTimerHz(36);
 }
 
-SliderAttempAudioProcessorEditor::~SliderAttempAudioProcessorEditor()
+BubbaCompAudioProcessorEditor::~BubbaCompAudioProcessorEditor()
 {
 }
 
-void SliderAttempAudioProcessorEditor::timerCallback() {
+void BubbaCompAudioProcessorEditor::timerCallback() {
     metter.setLevel(audioProcessor.getRmsValue(0));
     metter.repaint();
 }
 
 //==============================================================================
-void SliderAttempAudioProcessorEditor::paint (juce::Graphics& g)
+void BubbaCompAudioProcessorEditor::paint (juce::Graphics& g)
 {
     //auto bounds = getLocalBounds();
     //
@@ -50,7 +50,7 @@ void SliderAttempAudioProcessorEditor::paint (juce::Graphics& g)
     //metter.setBounds(bounds.removeFromRight(bounds.getWidth() / 2).reduced(50));
 }
 
-void SliderAttempAudioProcessorEditor::resized()
+void BubbaCompAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..

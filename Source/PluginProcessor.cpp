@@ -21,7 +21,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createParameters()
 }
 
 //==============================================================================
-SliderAttempAudioProcessor::SliderAttempAudioProcessor()
+BubbaCompAudioProcessor::BubbaCompAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
@@ -36,17 +36,17 @@ SliderAttempAudioProcessor::SliderAttempAudioProcessor()
 {
 }
 
-SliderAttempAudioProcessor::~SliderAttempAudioProcessor()
+BubbaCompAudioProcessor::~BubbaCompAudioProcessor()
 {
 }
 
 //==============================================================================
-const juce::String SliderAttempAudioProcessor::getName() const
+const juce::String BubbaCompAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool SliderAttempAudioProcessor::acceptsMidi() const
+bool BubbaCompAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
     return true;
@@ -55,7 +55,7 @@ bool SliderAttempAudioProcessor::acceptsMidi() const
    #endif
 }
 
-bool SliderAttempAudioProcessor::producesMidi() const
+bool BubbaCompAudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
     return true;
@@ -64,7 +64,7 @@ bool SliderAttempAudioProcessor::producesMidi() const
    #endif
 }
 
-bool SliderAttempAudioProcessor::isMidiEffect() const
+bool BubbaCompAudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
     return true;
@@ -73,50 +73,50 @@ bool SliderAttempAudioProcessor::isMidiEffect() const
    #endif
 }
 
-double SliderAttempAudioProcessor::getTailLengthSeconds() const
+double BubbaCompAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int SliderAttempAudioProcessor::getNumPrograms()
+int BubbaCompAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int SliderAttempAudioProcessor::getCurrentProgram()
+int BubbaCompAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void SliderAttempAudioProcessor::setCurrentProgram (int index)
+void BubbaCompAudioProcessor::setCurrentProgram (int index)
 {
 }
 
-const juce::String SliderAttempAudioProcessor::getProgramName (int index)
+const juce::String BubbaCompAudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
-void SliderAttempAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void BubbaCompAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-void SliderAttempAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void BubbaCompAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 }
 
-void SliderAttempAudioProcessor::releaseResources()
+void BubbaCompAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool SliderAttempAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool BubbaCompAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
@@ -141,7 +141,7 @@ bool SliderAttempAudioProcessor::isBusesLayoutSupported (const BusesLayout& layo
 }
 #endif
 
-void SliderAttempAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void BubbaCompAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
 
@@ -155,31 +155,31 @@ void SliderAttempAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 }
 
 //==============================================================================
-bool SliderAttempAudioProcessor::hasEditor() const
+bool BubbaCompAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* SliderAttempAudioProcessor::createEditor()
+juce::AudioProcessorEditor* BubbaCompAudioProcessor::createEditor()
 {
-    return new SliderAttempAudioProcessorEditor (*this);
+    return new BubbaCompAudioProcessorEditor (*this);
 }
 
 //==============================================================================
-void SliderAttempAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void BubbaCompAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
 }
 
-float SliderAttempAudioProcessor::getRmsValue(const int channel) const
+float BubbaCompAudioProcessor::getRmsValue(const int channel) const
 {
     return rmsLevel;
 }
 
 
-void SliderAttempAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void BubbaCompAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
@@ -189,5 +189,5 @@ void SliderAttempAudioProcessor::setStateInformation (const void* data, int size
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new SliderAttempAudioProcessor();
+    return new BubbaCompAudioProcessor();
 }

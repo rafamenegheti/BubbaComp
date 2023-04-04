@@ -36,7 +36,7 @@ struct Top : public juce::Component {
 
 struct RotaryParamsContainer : public juce::Component {
 
-    RotaryParamsContainer(SliderAttempAudioProcessor& p) : 
+    RotaryParamsContainer(BubbaCompAudioProcessor& p) : 
         releaseSlider(tooltip, p.apvts.getParameter("gain")),
         ratioSlider(tooltip, p.apvts.getParameter("gain")),
         attackSlider(tooltip, p.apvts.getParameter("gain")),
@@ -90,7 +90,7 @@ struct RotaryParamsContainer : public juce::Component {
 
 struct Mid : public juce::Component, public juce::Timer {
 
-    Mid(SliderAttempAudioProcessor& audioProcessor) :
+    Mid(BubbaCompAudioProcessor& audioProcessor) :
         rotaryParamsContainer(audioProcessor),
         metter(audioProcessor.apvts.getParameter("threshold")),
         processor(audioProcessor)
@@ -120,7 +120,7 @@ struct Mid : public juce::Component, public juce::Timer {
         metter.repaint();
     };
 
-    SliderAttempAudioProcessor& processor;
+    BubbaCompAudioProcessor& processor;
 
     juce::Component SliderContainer;
     RotaryParamsContainer rotaryParamsContainer;
@@ -141,11 +141,11 @@ struct Bottom : public juce::Component {
 };
 
 
-class SliderAttempAudioProcessorEditor : public juce::AudioProcessorEditor, public juce::Timer
+class BubbaCompAudioProcessorEditor : public juce::AudioProcessorEditor, public juce::Timer
 {
 public:
-    SliderAttempAudioProcessorEditor (SliderAttempAudioProcessor& p);
-    ~SliderAttempAudioProcessorEditor() override;
+    BubbaCompAudioProcessorEditor (BubbaCompAudioProcessor& p);
+    ~BubbaCompAudioProcessorEditor() override;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -155,7 +155,7 @@ public:
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    SliderAttempAudioProcessor& audioProcessor;
+    BubbaCompAudioProcessor& audioProcessor;
     juce::String tooltip = "My Knob";
 
     Comp::Knob gainSlider;
@@ -168,7 +168,7 @@ private:
     Mid mid; 
     Bottom bottom;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SliderAttempAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BubbaCompAudioProcessorEditor)
 };
 
 
