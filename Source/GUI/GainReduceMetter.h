@@ -155,6 +155,7 @@ protected:
 
     void mouseDrag(const juce::MouseEvent& evt) override
     {
+        setMouseCursor(juce::MouseCursor::StandardCursorType::NoCursor);
         auto bounds = getLocalBounds();
         auto metterBounds = bounds.withTrimmedTop(textContainerSpace).withTrimmedBottom(textContainerSpace).removeFromRight(bounds.getWidth() / 2);
         auto fillHeight = metterBounds.getHeight();
@@ -169,6 +170,7 @@ protected:
 
     void mouseUp(const juce::MouseEvent& evt) override
     {
+        setMouseCursor(juce::MouseCursor::StandardCursorType::PointingHandCursor);
         if (!evt.mouseWasDraggedSinceMouseDown() && evt.mods.isAltDown())
         {
             attach.setValueAsPartOfGesture(rap.convertFrom0to1(rap.getDefaultValue()));
@@ -190,5 +192,10 @@ protected:
         const auto sens = evt.mods.isShiftDown() ? Sensitive : 1.f;
         auto val = juce::jlimit(0.f, 1.f, rap.getValue() + direc * Wheel * sens);
         attach.setValueAsCompleteGesture(rap.convertFrom0to1(val));
+    }
+
+    void mouseEnter(const juce::MouseEvent& evt) override
+    {
+        setMouseCursor(juce::MouseCursor::StandardCursorType::PointingHandCursor);
     }
 };
