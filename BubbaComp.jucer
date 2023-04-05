@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="X5eX1L" name="BubbaComp" projectType="audioplug" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" includeBinaryInJuceHeader="1">
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" includeBinaryInJuceHeader="1"
+              pluginManufacturer="Bubba Audio">
   <MAINGROUP id="BPj80c" name="BubbaComp">
     <GROUP id="{A60FAE9D-C9B6-6747-A9AB-A9D230CAD417}" name="Source">
+      <GROUP id="{5B99574E-424E-A58C-D284-D69270C1C4C5}" name="DSP">
+        <FILE id="Y8Bnpt" name="Compression.cpp" compile="1" resource="0" file="Source/DSP/Compression.cpp"/>
+        <FILE id="HFmUsu" name="Compression.h" compile="0" resource="0" file="Source/DSP/Compression.h"/>
+        <FILE id="sYjYqD" name="ReductionCalc.cpp" compile="1" resource="0"
+              file="Source/DSP/ReductionCalc.cpp"/>
+        <FILE id="YpOO69" name="ReductionCalc.h" compile="0" resource="0" file="Source/DSP/ReductionCalc.h"/>
+      </GROUP>
       <GROUP id="{D893C9CB-3E24-2875-6D58-C7BCD1C645AF}" name="helpers">
         <FILE id="oFxgYt" name="misc.cpp" compile="1" resource="0" file="Source/helpers/misc.cpp"/>
         <FILE id="U8zS8q" name="misc.h" compile="0" resource="0" file="Source/helpers/misc.h"/>

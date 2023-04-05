@@ -37,10 +37,10 @@ struct Top : public juce::Component {
 struct RotaryParamsContainer : public juce::Component {
 
     RotaryParamsContainer(BubbaCompAudioProcessor& p) : 
-        releaseSlider(tooltip, p.apvts.getParameter("gain")),
-        ratioSlider(tooltip, p.apvts.getParameter("gain")),
-        attackSlider(tooltip, p.apvts.getParameter("gain")),
-        kneeSlider(tooltip, p.apvts.getParameter("gain")),
+        releaseSlider(tooltip, p.apvts.getParameter("release")),
+        ratioSlider(tooltip, p.apvts.getParameter("ratio")),
+        attackSlider(tooltip, p.apvts.getParameter("attack")),
+        kneeSlider(tooltip, p.apvts.getParameter("knee")),
         gainSlider(tooltip, p.apvts.getParameter("gain"))
     {
         addAndMakeVisible(releaseSlider);
@@ -51,8 +51,6 @@ struct RotaryParamsContainer : public juce::Component {
     };
     juce::String tooltip = "My Knob";
 
-    void paint(juce::Graphics& g) override {
-    };
 
     void resized() override {
         auto bounds = getLocalBounds().reduced(5);
@@ -80,7 +78,7 @@ struct RotaryParamsContainer : public juce::Component {
         bottomFlexBox.items.add(FlexItem(kneeSlider).withFlex(1.f));
         bottomFlexBox.items.add(FlexItem(gainSlider).withFlex(1.f));
 
-        bottomFlexBox.performLayout(bottomBounds);
+        bottomFlexBox.performLayout(bottomBounds.withTrimmedLeft(bottomBounds.getWidth() / 6).withTrimmedRight(bottomBounds.getWidth() / 6));
     };
 
     Comp::Knob releaseSlider, ratioSlider, attackSlider, kneeSlider, gainSlider;
@@ -141,7 +139,7 @@ struct Bottom : public juce::Component {
 };
 
 
-class BubbaCompAudioProcessorEditor : public juce::AudioProcessorEditor, public juce::Timer
+class BubbaCompAudioProcessorEditor : public juce::AudioProcessorEditor
 {
 public:
     BubbaCompAudioProcessorEditor (BubbaCompAudioProcessor& p);
@@ -150,19 +148,12 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
-    void timerCallback() override;
 
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     BubbaCompAudioProcessor& audioProcessor;
     juce::String tooltip = "My Knob";
-
-    Comp::Knob gainSlider;
-
-    GainReduceMetter metter;
-
-    juce::Rectangle<int> left, rigth;
 
     Top top;
     Mid mid; 

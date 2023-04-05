@@ -14,8 +14,14 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createParameters()
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> parameters;
 
+    auto attackReleaseRange = juce::NormalisableRange<float>(1.f, 1000.f, 1, 1);
+
     parameters.push_back(std::make_unique<juce::AudioParameterFloat>("gain", "Gain", -60.f, 20.f, 6.f));
     parameters.push_back(std::make_unique<juce::AudioParameterFloat>("threshold", "Threshold", -60.f, 20.f, -10.f));
+    parameters.push_back(std::make_unique<juce::AudioParameterFloat>("release", "Release", attackReleaseRange, 50));
+    parameters.push_back(std::make_unique<juce::AudioParameterFloat>("attack", "Attack", attackReleaseRange, 50));
+    parameters.push_back(std::make_unique<juce::AudioParameterFloat>("knee", "Knee", -60.f, 20.f, -10.f));
+    parameters.push_back(std::make_unique<juce::AudioParameterFloat>("ratio", "Ratio", -60.f, 20.f, -10.f));
 
     return { parameters.begin(), parameters.end() };
 }
