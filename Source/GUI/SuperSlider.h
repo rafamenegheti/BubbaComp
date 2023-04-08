@@ -81,8 +81,14 @@ namespace Comp
                 g.setColour(Misc::Shared::shared.colors.green2);
                 g.setFont(24.f);
                 const auto value = k.rap.getValue();
-                const auto nameAndVal = k.rap.getName(20) + "\n" + k.rap.getCurrentValueAsText();
+                const auto nameAndVal = k.rap.getName(20) + "\n" + k.rap.getCurrentValueAsText() + " " + k.rap.getLabel();
                 g.drawFittedText(nameAndVal, k.getLocalBounds(), juce::Justification::centred, 1);
+
+                auto id = k.rap.getParameterID();
+                if (id == "ratio") {
+                    DBG(k.rap.getNumSteps());
+                    DBG(k.rap.convertFrom0to1(k.rap.getValue()));
+                }
 
                 float mappedValue = juce::jmap(k.rap.getNormalisableRange().convertFrom0to1(value), k.rap.getNormalisableRange().start, k.rap.getNormalisableRange().end, 1.f, 0.f);
 

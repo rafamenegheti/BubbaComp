@@ -9,6 +9,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "./DSP/Compression.h"
 
 //==============================================================================
 /**
@@ -56,28 +57,23 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    float getRmsValue(const int channel) const;
+    float getRmsInputValue() const;
+    float getRmsOutputValue() const;
+    float getRmsGainReductionValue() const;
     juce::AudioProcessorValueTreeState apvts;
 
 private:
     //==============================================================================
 
-    float rmsLevel;
+    void attParams();
+
+    float inputRmsLevel;
+    float outputRmsLevel;
+    float gainReductionRmsLevel;
 
     template<typename T>
-    float computeRMSLevel(const T& buffer)
+    float computePeakLevel(const T& buffer)
     {
-        //int numChannels = static_cast<int>(buffer.getNumChannels());
-        //int numSamples = static_cast<int>(buffer.getNumSamples());
-        //auto rms = 0.f;
-        //for (int chan = 0; chan < numChannels; ++chan)
-        //{
-        //    rms += buffer.getRMSLevel(chan, 0, numSamples);
-        //}
-
-        //rms /= static_cast<float>(numChannels);
-        //return rms;
-
         int numChannels = static_cast<int>(buffer.getNumChannels());
         int numSamples = static_cast<int>(buffer.getNumSamples());
         auto maxLevel = 0.f;
@@ -93,6 +89,9 @@ private:
         }
         return maxLevel;
     }
+
+    Compression compressor;
+    juce::dsp::Gain<float> gain;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BubbaCompAudioProcessor)
 };

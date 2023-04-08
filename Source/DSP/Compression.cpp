@@ -14,39 +14,39 @@
 // ratio
 void Compression::setRatio(float ratioInDb)
 {
-    ReductionCalc.setRatio(ratioInDb);
+    reductionCalc.setRatio(ratioInDb);
 }
 // threshold
 void Compression::setThreshold(float thresholdInDb)
 {
-    ReductionCalc.setThreshold(thresholdInDb);
+    reductionCalc.setThreshold(thresholdInDb);
 }
-const float Compression::getThreshold() { return ReductionCalc.getThreshold(); }
+const float Compression::getThreshold() { return reductionCalc.getThreshold(); }
 // attack
-void Compression::serAttack(float attackInMs)
+void Compression::setAttack(float attackInMs)
 {
-    ReductionCalc.setAttackTime(attackInMs / 1000);
+    reductionCalc.setAttackTime(attackInMs / 1000);
 }
 // release
 void Compression::setRelease(float releaseInMs)
 {
-    ReductionCalc.setReleaseTime(releaseInMs / 1000);
+    reductionCalc.setReleaseTime(releaseInMs / 1000);
 }
 // knee
 void Compression::setKnee(float kneeInDb)
 {
-    ReductionCalc.setKnee(kneeInDb);
+    reductionCalc.setKnee(kneeInDb);
 }
 const float Compression::getKnee()
 {
-    return ReductionCalc.getKnee();
+    return reductionCalc.getKnee();
 }
 // makeUpGain
 void Compression::setMakeUpGain(const float makeUpGainInDecibels)
 {
-    ReductionCalc.setMakeUpGain(makeUpGainInDecibels);
+    reductionCalc.setMakeUpGain(makeUpGainInDecibels);
 }
-const float Compression::getMakeUpGain() { return ReductionCalc.getMakeUpGain(); }
+const float Compression::getMakeUpGain() { return reductionCalc.getMakeUpGain(); }
 // bypassed
 void Compression::setBypassed(bool isBypassed)
 {
@@ -60,12 +60,25 @@ void Compression::process(const juce::dsp::ProcessContextReplacing<float>& conte
     const int nChannels = static_cast<int> (outBlock.getNumChannels());
     const int numSamples = static_cast<int> (outBlock.getNumSamples());
 
+    /** STEP 1: compute sidechain-signal */
+    // copy the absolute values from the first input channel to the sideChainBuffer
+    juce::FloatVectorOperations::abs(sideChainBuffer.getWritePointer(0), outBlock.getChannelPointer(0), numSamples);
 
-    for (int ch = 0; ch < nChannels; ++ch) {
-        juce::FloatVectorOperations::abs(sideChainBuffer.getWritePointer(ch), outBlock.getChannelPointer(ch), numSamples);
-        ReductionCalc.computeLinearGainFromSidechainSignal(sideChainBuffer.getReadPointer(ch), sideChainBuffer.getWritePointer(ch), numSamples);
-        juce::FloatVectorOperations::multiply(outBlock.getChannelPointer(ch), sideChainBuffer.getReadPointer(ch), numSamples);
+    // copy all other channels to the second channel of the sideChainBuffer and write the maximum of both channels to the first one
+    for (int ch = 1; ch < nChannels; ++ch)
+    {
+        juce::FloatVectorOperations::abs(sideChainBuffer.getWritePointer(1), outBlock.getChannelPointer(ch), numSamples);
+        juce::FloatVectorOperations::max(sideChainBuffer.getWritePointer(0), sideChainBuffer.getReadPointer(0), sideChainBuffer.getReadPointer(1), numSamples);
     }
+
+    /** STEP 2: calculate gain reduction */
+    reductionCalc.computeLinearGainFromSidechainSignal(sideChainBuffer.getReadPointer(0), sideChainBuffer.getWritePointer(1), numSamples);
+    // gain-reduction is now in the second channel of our sideChainBuffer
+
+
+    /** STEP 3: apply gain-reduction to all channels */
+    for (int ch = 0; ch < nChannels; ++ch)
+        juce::FloatVectorOperations::multiply(outBlock.getChannelPointer(ch), sideChainBuffer.getReadPointer(1), numSamples);
 }
 
 

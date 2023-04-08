@@ -23,7 +23,7 @@ public:
     void setThreshold(float thresholdInDb);
     const float getThreshold();
 
-    void serAttack(float attackInMs);
+    void setAttack(float attackInMs);
 
     void setRelease(float releaseInMs);
 
@@ -39,11 +39,11 @@ public:
 
     void reset() override {};
 
-    ReductionCalc& getReductionCalc() { return ReductionCalc; };
+    ReductionCalc& getReductionCalc() { return reductionCalc; };
 
     void prepare(const juce::dsp::ProcessSpec& specs) override
     {
-        ReductionCalc.prepare(specs.sampleRate);
+        reductionCalc.prepare(specs.sampleRate);
         sideChainBuffer.setSize(2, specs.maximumBlockSize);
     };
 
@@ -51,6 +51,6 @@ private:
     // parameters
     bool bypassed{ false };
 
-    ReductionCalc ReductionCalc;
+    ReductionCalc reductionCalc;
     juce::AudioBuffer<float> sideChainBuffer;
 };

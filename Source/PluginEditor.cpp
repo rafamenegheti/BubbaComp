@@ -12,7 +12,7 @@
 
 //==============================================================================
 BubbaCompAudioProcessorEditor::BubbaCompAudioProcessorEditor(BubbaCompAudioProcessor& p)
-    : AudioProcessorEditor(&p), audioProcessor(p), mid(p)
+    : AudioProcessorEditor(&p), audioProcessor(p), mid(p), bottom(p)
 {
 
     setSize(750, 450);

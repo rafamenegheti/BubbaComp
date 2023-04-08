@@ -16,12 +16,14 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createParameters()
 
     auto attackReleaseRange = juce::NormalisableRange<float>(1.f, 1000.f, 1, 1);
 
-    parameters.push_back(std::make_unique<juce::AudioParameterFloat>("gain", "Gain", -60.f, 20.f, 6.f));
+    parameters.push_back(std::make_unique<juce::AudioParameterFloat>("gain", "Gain", -36.f, 36.f, 0.f));
     parameters.push_back(std::make_unique<juce::AudioParameterFloat>("threshold", "Threshold", -60.f, 20.f, -10.f));
-    parameters.push_back(std::make_unique<juce::AudioParameterFloat>("release", "Release", attackReleaseRange, 50));
-    parameters.push_back(std::make_unique<juce::AudioParameterFloat>("attack", "Attack", attackReleaseRange, 50));
-    parameters.push_back(std::make_unique<juce::AudioParameterFloat>("knee", "Knee", -60.f, 20.f, -10.f));
-    parameters.push_back(std::make_unique<juce::AudioParameterFloat>("ratio", "Ratio", -60.f, 20.f, -10.f));
+    parameters.push_back(std::make_unique<juce::AudioParameterFloat>("release", "Release", juce::NormalisableRange<float>(0.1f, 800.0f, 0.1f), 150.0f, "ms"));
+    parameters.push_back(std::make_unique<juce::AudioParameterFloat>("attack", "Attack", juce::NormalisableRange<float>(0.1f, 100.0f, 0.1f), 30.0f, "ms"));
+    parameters.push_back(std::make_unique<juce::AudioParameterFloat>("ratio", "Ratio", juce::NormalisableRange<float>(1.0f, 16.0f, 0.1f), 1.0f, " : 1",
+        juce::AudioProcessorParameter::genericParameter,
+        [](float value, int maximumStringLength) { if (value > 15.9f) return juce::String("inf"); return juce::String(value, 2); }));
+    parameters.push_back(std::make_unique<juce::AudioParameterFloat>("knee", "Knee", juce::NormalisableRange<float>(0.0f, 30.0f, 0.1f), 0.0f, "dB"));
 
     return { parameters.begin(), parameters.end() };
 }
@@ -111,8 +113,13 @@ void BubbaCompAudioProcessor::changeProgramName (int index, const juce::String& 
 //==============================================================================
 void BubbaCompAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    juce::dsp::ProcessSpec spec;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = getTotalNumOutputChannels();
+    spec.sampleRate = sampleRate;
+
+    compressor.prepare(spec);
+    gain.prepare(spec);
 }
 
 void BubbaCompAudioProcessor::releaseResources()
@@ -151,13 +158,38 @@ void BubbaCompAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 {
     juce::ScopedNoDenormals noDenormals;
 
+    attParams();
 
     auto convertToDb = [](auto input)
     {
         return juce::Decibels::gainToDecibels(input);
     };
 
-    rmsLevel = convertToDb(computeRMSLevel(buffer));
+    inputRmsLevel = convertToDb(computePeakLevel(buffer));
+
+    auto totalNumInputChannels = getTotalNumInputChannels();
+    auto totalNumOutputChannels = getTotalNumOutputChannels();
+
+    const int numSamples = buffer.getNumSamples();
+
+    // clear not needed output channels
+    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+        buffer.clear(i, 0, numSamples);
+
+    juce::dsp::AudioBlock<float> ab(buffer);
+    juce::dsp::ProcessContextReplacing<float> context(ab);
+
+    compressor.process(context);
+
+    auto outputBeforeGainRmsLevel = convertToDb(computePeakLevel(buffer));
+    gain.process(context);
+
+    outputRmsLevel = convertToDb(computePeakLevel(buffer));
+    gainReductionRmsLevel = inputRmsLevel - outputBeforeGainRmsLevel;
+
+    DBG(inputRmsLevel);
+    DBG(outputRmsLevel);
+    DBG(gainReductionRmsLevel);
 }
 
 //==============================================================================
@@ -174,21 +206,32 @@ juce::AudioProcessorEditor* BubbaCompAudioProcessor::createEditor()
 //==============================================================================
 void BubbaCompAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    auto state = apvts.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+
+    copyXmlToBinary(*xml, destData);
 }
 
-float BubbaCompAudioProcessor::getRmsValue(const int channel) const
+float BubbaCompAudioProcessor::getRmsInputValue() const
 {
-    return rmsLevel;
+    return inputRmsLevel;
 }
-
+float BubbaCompAudioProcessor::getRmsOutputValue() const
+{
+    return outputRmsLevel;
+}
+float BubbaCompAudioProcessor::getRmsGainReductionValue() const
+{
+    return gainReductionRmsLevel;
+}
 
 void BubbaCompAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName(apvts.state.getType()))
+            apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
 //==============================================================================
@@ -196,4 +239,25 @@ void BubbaCompAudioProcessor::setStateInformation (const void* data, int sizeInB
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new BubbaCompAudioProcessor();
+}
+
+void BubbaCompAudioProcessor::attParams() {
+    juce::RangedAudioParameter* thresholdValue = apvts.getParameter("threshold");
+    float normalizedValue = thresholdValue->getValue();
+    float actualValue = thresholdValue->convertFrom0to1(normalizedValue);
+
+    compressor.setAttack(apvts.getRawParameterValue("attack")->load());
+    compressor.setRelease(apvts.getRawParameterValue("release")->load());
+    compressor.setThreshold(actualValue);
+
+    compressor.setKnee(apvts.getRawParameterValue("knee")->load());
+
+    auto ratio = apvts.getRawParameterValue("ratio")->load();
+
+    if (ratio > 15.9f)
+        compressor.setRatio(std::numeric_limits<float>::infinity());
+    else
+        compressor.setRatio(ratio);
+
+    gain.setGainDecibels(apvts.getRawParameterValue("gain")->load());
 }

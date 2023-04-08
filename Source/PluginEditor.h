@@ -11,7 +11,8 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "./GUI/SuperSlider.h"
-#include "./GUI/GainReduceMetter.h"
+#include "./GUI/ThresholdSlider.h"
+#include "./GUI/GainMeter.h"
 
 //==============================================================================
 /**
@@ -90,12 +91,12 @@ struct Mid : public juce::Component, public juce::Timer {
 
     Mid(BubbaCompAudioProcessor& audioProcessor) :
         rotaryParamsContainer(audioProcessor),
-        metter(audioProcessor.apvts.getParameter("threshold")),
+        thresholdSlider(audioProcessor.apvts.getParameter("threshold")),
         processor(audioProcessor)
     {
         addAndMakeVisible(SliderContainer);
         addAndMakeVisible(rotaryParamsContainer);
-        addAndMakeVisible(metter);
+        addAndMakeVisible(thresholdSlider);
 
         startTimerHz(36);
     };
@@ -110,32 +111,71 @@ struct Mid : public juce::Component, public juce::Timer {
         auto boundsWidth = bounds.getWidth();
 
         rotaryParamsContainer.setBounds(bounds.removeFromLeft((boundsWidth / 4) * 3));
-        metter.setBounds(bounds.removeFromRight(boundsWidth / 4));
+        thresholdSlider.setBounds(bounds.removeFromRight(boundsWidth / 4));
     };
 
     void timerCallback() override {
-        metter.setLevel(processor.getRmsValue(0));
-        metter.repaint();
+        thresholdSlider.setLevel(processor.getRmsInputValue());
+        thresholdSlider.repaint();
     };
 
     BubbaCompAudioProcessor& processor;
 
     juce::Component SliderContainer;
     RotaryParamsContainer rotaryParamsContainer;
-    GainReduceMetter metter;
+    ThresholdSlider thresholdSlider;
 };
 
 
-struct Bottom : public juce::Component {
+struct Bottom : public juce::Component, public juce::Timer {
 
-    Bottom() {};
+    Bottom(BubbaCompAudioProcessor& audioProcessor) :
+        outputMeter("output", 24.f, -60.f),
+        gainReduction("Gain Reduction", 80.f, 0.f),
+        processor(audioProcessor)
+    {
+        addAndMakeVisible(outputMeter);
+        addAndMakeVisible(gainReduction);
+
+        startTimerHz(36);
+    };
+
+
+    GainMeter outputMeter, gainReduction;
+    BubbaCompAudioProcessor& processor;
 
     void paint(juce::Graphics& g) override {
-
     };
 
     void resized() override {
+        auto bounds = getLocalBounds().withTrimmedBottom(10);
+
+        auto left = bounds.removeFromRight(bounds.getWidth() / 2).withTrimmedRight(40);
+
+
+        using namespace juce;
+
+        FlexBox leftFlexBox;
+        leftFlexBox.flexDirection = FlexBox::Direction::column;
+        leftFlexBox.justifyContent = juce::FlexBox::JustifyContent::flexEnd;  
+        leftFlexBox.alignContent = juce::FlexBox::AlignContent::center;
+
+        leftFlexBox.items.add(FlexItem(outputMeter).withWidth(left.getWidth()).withHeight(40));
+        leftFlexBox.items.add(FlexItem().withFlex(0.f).withHeight(5));
+        leftFlexBox.items.add(FlexItem(gainReduction).withWidth(left.getWidth()).withHeight(40));
+
+        leftFlexBox.performLayout(left);
     };
+
+
+    void timerCallback() override {
+        outputMeter.setLevel(processor.getRmsOutputValue());
+        gainReduction.setLevel(processor.getRmsGainReductionValue());
+        outputMeter.repaint();
+        gainReduction.repaint();
+
+    };
+
 };
 
 

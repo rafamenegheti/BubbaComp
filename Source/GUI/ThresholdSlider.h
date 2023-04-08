@@ -16,7 +16,7 @@
 #include "../helpers/misc.h"
 
 
-struct GainReduceMetter : public juce::Component {
+struct ThresholdSlider : public juce::Component {
 
     float level = -60.f;
 
@@ -27,9 +27,9 @@ struct GainReduceMetter : public juce::Component {
     static constexpr float Sensitive = .2f;
     static constexpr float Wheel = 0.01f;
 
-    inline std::function<void(GainReduceMetter&, juce::Graphics& g, float level, std::string(*formatFloat)(float))> makeOnPaint0()
+    inline std::function<void(ThresholdSlider&, juce::Graphics& g, float level, std::string(*formatFloat)(float))> makeOnPaint0()
     {
-        return [](GainReduceMetter& k, juce::Graphics& g, float level, auto formatFloat)
+        return [](ThresholdSlider& k, juce::Graphics& g, float level, auto formatFloat)
         {
             // define font
             g.setFont(Misc::Shared::shared.font);
@@ -106,7 +106,7 @@ struct GainReduceMetter : public juce::Component {
         };
     };
 
-    GainReduceMetter(juce::RangedAudioParameter* _rap) :
+    ThresholdSlider(juce::RangedAudioParameter* _rap) :
         rap(*_rap),
         attach(rap, [this](float) { repaint(); }, nullptr),
         onPaint(makeOnPaint0()),
@@ -123,7 +123,7 @@ public:
 protected:
     juce::RangedAudioParameter& rap;
     juce::ParameterAttachment attach;
-    std::function<void(GainReduceMetter&, juce::Graphics& g, float level, std::string (*formatFloat)(float))> onPaint;
+    std::function<void(ThresholdSlider&, juce::Graphics& g, float level, std::string (*formatFloat)(float))> onPaint;
     float dragY;
 
     static std::string formatFloat(float f)
